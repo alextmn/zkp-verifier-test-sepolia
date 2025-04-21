@@ -96,10 +96,12 @@ Install dependencies:
 npm install @nomiclabs/hardhat-ethers
 ```
 
+sign up for infura and replace YOUR_INFURA_PROJECT_ID
+
 Create `.env`:
 
 ```env
-GOERLI_RPC_URL=https://goerli.infura.io/v3/YOUR_INFURA_PROJECT_ID
+SEPOLIA_RPC_URL=https://goerli.infura.io/v3/YOUR_INFURA_PROJECT_ID
 PRIVATE_KEY=your_private_key_without_0x
 ```
 
