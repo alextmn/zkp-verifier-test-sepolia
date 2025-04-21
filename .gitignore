@@ -1,0 +1,12 @@
+node_modules
+artifacts
+cache
+*_js
+*.wtns
+*.zkey
+*.r1sc
+*.ptau
+*.sym
+verification_*.json
+*.r1cs
+.env
