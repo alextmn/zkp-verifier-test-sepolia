@@ -262,7 +262,95 @@ You’ve now:
 The price is only up to the number of public outputs, not the circuit complexity
 
 1. [Multiplier, tx fee: 0.00002191](https://sepolia.arbiscan.io/address/0xD2d1dBec05e39872Efce0DB80C17f62F95821db7)
-2. [ECDSA, tx fee: 0.00003143](https://sepolia.arbiscan.io/address/0xb3d83BA5A3b6f78F7DE1C86Df63dd66F23e5b26f)
+2. [tx fee: 0.00003143](https://sepolia.arbiscan.io/address/0xb3d83BA5A3b6f78F7DE1C86Df63dd66F23e5b26f)
 
 3. [Multiplier tx: 0xafd7baf12980d1d929d86a7496f987e04224fb47024fd4143d7f26737afa383e](https://sepolia.arbiscan.io/tx/0xafd7baf12980d1d929d86a7496f987e04224fb47024fd4143d7f26737afa383e)
 4. [ECDSA tx: 0x849f18ead30026924a410e12afa7b2c57bb208790b6eba241641d8c2e26c64f2](https://sepolia.arbiscan.io/tx/0x849f18ead30026924a410e12afa7b2c57bb208790b6eba241641d8c2e26c64f2)
+
+
+# 🛠️ Solana Integration for Groth16 ZKP Verifier
+
+This section demonstrates how to deploy and verify a Groth16 zero-knowledge proof (ZKP) on **Solana**, using Rust and the Arkworks zk-SNARK library.
+
+---
+
+## 📦 Prerequisites
+
+You need to have:
+
+- Rust + Solana toolchain:
+```bash
+rustup install stable
+cargo install --git https://github.com/solana-labs/solana --locked
+```
+
+- Arkworks dependencies in `Cargo.toml`:
+```toml
+[dependencies]
+ark-groth16 = "0.3"
+ark-bn254 = "0.3"
+ark-serialize = "0.3"
+```
+
+---
+
+## 🔧 Convert SnarkJS Proof to Arkworks Format
+
+You will need:
+
+- `verification_key.json`
+- `proof.json`
+- `public.json`
+
+Use a custom script or utility to convert these into Arkworks `VerifyingKey`, `Proof`, and `Vec<Fr>` types. You can serialize these into `bincode` or raw bytes and include them in your Solana contract.
+
+---
+
+## 📂 Solana Program Example
+
+A minimal verifier contract in Rust might look like:
+
+```rust
+use ark_bn254::{Bn254, Fr};
+use ark_groth16::{Groth16, Proof, VerifyingKey, prepare_verifying_key, verify_proof};
+use ark_serialize::CanonicalDeserialize;
+
+pub fn verify_groth16(
+    vk_bytes: &[u8],
+    proof_bytes: &[u8],
+    public_inputs: Vec<Fr>,
+) -> bool {
+    let vk = VerifyingKey::<Bn254>::deserialize(vk_bytes).unwrap();
+    let proof = Proof::<Bn254>::deserialize(proof_bytes).unwrap();
+    let pvk = prepare_verifying_key(&vk);
+
+    verify_proof(&pvk, &proof, &public_inputs).unwrap_or(false)
+}
+```
+
+To use in Solana:
+- Compile with `cargo build-bpf`
+- Deploy with:
+```bash
+solana program deploy target/deploy/your_zk_program.so
+```
+
+---
+
+## 🧪 Client/Frontend Side
+
+Use SnarkJS in your web app:
+```js
+const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, wasm, zkey);
+
+// send proof and publicSignals to Solana program for verification
+```
+
+---
+
+## ✅ Summary for Solana
+
+This allows you to validate Ethereum-compatible Groth16 proofs inside a Solana program using native Rust logic.
+
+For more advanced implementations (e.g., Poseidon hash support or circuit optimizations), refer to [Arkworks documentation](https://github.com/arkworks-rs).
+
