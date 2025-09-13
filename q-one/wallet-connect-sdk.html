@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <body>
+    <button id="connect">Connect (WalletConnect → MetaMask)</button>
+    <button id="zkTransfer">Call zkTransfer()</button>
+
+    <script type="module">
+      import EthereumProvider from 'https://cdn.skypack.dev/@walletconnect/ethereum-provider';
+      import { ethers } from 'https://cdn.skypack.dev/ethers';
+
+      // --- EDIT THESE ---
+      const WC_PROJECT_ID = 'YOUR_WALLETCONNECT_PROJECT_ID';
+      const CHAIN_ID = 1; // 1=Ethereum mainnet, 8453=Base, 137=Polygon, etc.
+      const QONE_ROUTER_ADDRESS = '0xYourZkRouter';
+      const QONE_ROUTER_ABI = [
+        // minimal ABI for the function you intend to call
+        "function zkTransfer(address to,uint256 amount,uint256 deadline,bytes proof) external"
+      ];
+      // ------------------
+
+      let wcProvider;       // WalletConnect provider
+      let ethersProvider;   // Ethers.js provider
+      let signer;           // EOA (from MetaMask mobile)
+      let router;           // Contract instance
+
+      async function connect() {
+        // 1) Init WalletConnect Ethereum provider (shows QR modal)
+        wcProvider = await EthereumProvider.init({
+          projectId: WC_PROJECT_ID,
+          showQrModal: true,
+          // Accept the chain(s) your app supports
+          chains: [CHAIN_ID],
+          optionalChains: [CHAIN_ID],
+          // methods/events you plan to use
+          optionalMethods: [
+            "eth_sendTransaction",
+            "eth_signTransaction",
+            "eth_signTypedData",
+            "personal_sign",
+          ],
+          optionalEvents: ["chainChanged", "accountsChanged"],
+          metadata: {
+            name: "QONE dApp",
+            description: "ZK-gated QONE Router Example",
+            url: "https://yourapp.example",
+            icons: ["https://yourapp.example/icon.png"]
+          }
+        });
+
+        // 2) Open session (QR pops for desktop → scan with MetaMask mobile)
+        await wcProvider.enable();
+
+        // 3) Wrap with ethers.js so we can sign/send
+        ethersProvider = new ethers.BrowserProvider(wcProvider);
+        signer = await ethersProvider.getSigner();
+        router = new ethers.Contract(QONE_ROUTER_ADDRESS, QONE_ROUTER_ABI, signer);
+
+        wcProvider.on('accountsChanged', (a) => console.log('accountsChanged', a));
+        wcProvider.on('chainChanged', (c) => console.log('chainChanged', c));
+        wcProvider.on('disconnect',   (e) => console.log('disconnect', e));
+
+        alert(`Connected: ${await signer.getAddress()}`);
+      }
+
+      // Example: call zkTransfer(to, amount, deadline, proof)
+      async function callZkTransfer() {
+        if (!router) return alert("Connect first.");
+
+        // --- build your ZK proof off-chain; here we mock it ---
+        const to = "0xRecipientAddress...";
+        const amount = ethers.parseUnits("10", 18); // 10 QONE
+        const deadline = Math.floor(Date.now()/1000) + 30 * 60; // 30 min
+        const proof = "0x"; // REPLACE with real bytes from your prover
+
+        // NOTE: user must have approved the router for `amount` beforehand
+        // or you add EIP-2612 permit flow in your router (advanced version)
+        try {
+          const tx = await router.zkTransfer(to, amount, deadline, proof);
+          console.log('sent', tx.hash);
+          const rcpt = await tx.wait();
+          console.log('confirmed', rcpt.transactionHash);
+          alert(`zkTransfer confirmed: ${rcpt.transactionHash}`);
+        } catch (e) {
+          console.error(e);
+          alert(`Error: ${e?.message || e}`);
+        }
+      }
+
+      document.getElementById('connect').onclick = connect;
+      document.getElementById('zkTransfer').onclick = callZkTransfer;
+    </script>
+  </body>
+</html>
