@@ -36,6 +36,8 @@ qOne Wallet App calls WalletConnect SDK to sign the transaction using EC key and
 ---
 
 # One Atomic Ethereum Transaction (EC sig only)
+- UNLOCK using ZKP
+- ERC-20 TRANSER
 
 * The dApp submits a call to the **ZK Router** contract (`zkTransfer` or `zkDexCall`) with parameters:
   `{ proof, deadline, amount, recipient/router, … }`.
@@ -176,4 +178,11 @@ contract QoneSimpleZkRouter {
 }
 ```
 
-We need to implement this ROuter to make sure we could you only one transaction
+# Next Priorites
+0. No Need for any wallet extentions, like Snaps
+1. We need to build a similar Router for HyperEVM (our custom). 
+2. We need to implement this Router to make sure it fully works
+3. HyperSwap’s architecture is modeled after Uniswap, specifically the Uniswap V2 style and it supports Routers we need to make sure it fully works.
+4. We make sure we can do Bridges too
+- Lock qOne ERC-20 + ZKP on HyperEVM.
+- Mint qOne wrapped ERC-20 + ZKP on Ethereum.
