@@ -186,3 +186,4 @@ contract QoneSimpleZkRouter {
 4. We make sure we can do Bridges too
 - Lock qOne ERC-20 + ZKP on HyperEVM.
 - Mint qOne wrapped ERC-20 + ZKP on Ethereum.
+5.  for ZKP the hash is POSIDON, not keccak256
