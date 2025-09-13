@@ -187,3 +187,12 @@ contract QoneSimpleZkRouter {
 - Lock qOne ERC-20 + ZKP on HyperEVM.
 - Mint qOne wrapped ERC-20 + ZKP on Ethereum.
 5.  for ZKP the hash is POSIDON, not keccak256
+
+
+Research Priorities (ordered)
+
+1. Wire the verifier properly (public inputs + Poseidon inside the circuit).
+2. Add nullifier/nonce (single-use proofs), nonReentrant, SafeERC20, events.
+3. EIP-2612 permit on QONE (optional) to avoid prior approvals for zkTransfer.
+4. DEX routing tests – Uniswap-V2-style routers are fine; cover happy path + revert propagation with fuzz tests.
+5. Bridge flow – lock on HyperEVM + proof; mint wrapped on Ethereum; and the reverse. Add rate limits/guardians.
