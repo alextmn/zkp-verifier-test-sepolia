@@ -9,10 +9,6 @@ User enters Falcon-512 private key to sign the transaction in ZKP implemented as
 
 qOne Wallet App calls WalletConnect SDK to sign the transaction using EC key and send it to blockchain
 
-
-
-Here’s a polished and developer-friendly version of your flow description. I kept the structure but tightened the language, clarified responsibilities, and emphasized the “atomic, EC-only transaction” point:
-
 # End-to-End Flow
 
 1. **qOne Wallet App (web dApp)**
