@@ -4,7 +4,7 @@
 * **Wallet** does the heavy lifting:
   It computes
 
-  $$ C = \text{SHAKE256}(r \| M) $$
+  $$C = \text{SHAKE256}(r \| M)$$
 
   where $M$ is your transaction hash (or message).
 
@@ -12,7 +12,7 @@
 
   1. The Falcon verification algebra:
 
-     $$ s_1 + s_2 \cdot h \equiv C \pmod{q,\,x^n+1} $$
+     $$s_1 + s_2 \cdot h \equiv C \pmod{q,\,x^n+1}$$
   2. That the $C$ used is bound to $M$ via your reconstruction trick (differences $D_i = C_i - M_i$, or any equivalent compression).
 
 ---
