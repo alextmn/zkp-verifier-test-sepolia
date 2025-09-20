@@ -1,5 +1,3 @@
-Here’s a clean description you can keep as a note:
-
 ### ZK-Friendly Falcon Verification (Bound to Transaction Hash -> Falcon Hash To Point)
 
 ## Idea
