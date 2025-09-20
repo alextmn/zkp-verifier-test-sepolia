@@ -1,40 +1,44 @@
+Here’s a clean description you can keep as a note:
 
-## How to achive Falcon native Hash2Point
+### ZK-Friendly Falcon Verification (Bound to Transaction Hash -> Falcon Hash To Point)
 
-* **Wallet** does the heavy lifting:
-  It computes
+## Idea
+We precompute Falcon’s hash-to-point with SHAKE256 in the wallet, compress it against the message, and let the ZKP circuit reconstruct and verify it — achieving Falcon-compatible verification without the on-chain cost of big SHAKE256 or polynomial commitments.
 
-  $$C = \text{SHAKE256}(r \| M)$$
 
-  where $M$ is your transaction hash (or message).
+1. **Off-circuit (Wallet)**
 
-* **Circuit** only checks:
+   * Wallet computes
 
-  1. The Falcon verification algebra:
+     $$C = \text{SHAKE256}(r \,\|\, M)$$
 
-     $$s_1 + s_2 \cdot h \equiv C \pmod{q,\,x^n+1}$$
-  2. That the $C$ used is bound to $M$ via your reconstruction trick (differences $D_i = C_i - M_i$, or any equivalent compression).
+     where $M$ is the transaction hash or message.
+   * Instead of passing the whole $C$ (512 coefficients), the wallet derives a compressed witness $D$, for example
+
+     $$D_i = C_i - M_i$$
+
+     using a fixed windowing of the public message $M$.
+
+2. **In-circuit (ZKP)**
+
+   * Public input: the message $M$.
+   * Private witness: the compressed differences $D$.
+   * Circuit reconstructs $C$ from $(M, D)$.
+
+
+3. **On-chain**
+
+   * Only $M$ (public transaction hash) and the ZK proof are published.
+   * Full $C$ never appears on chain (saves cost).
 
 ---
 
-## Why it still counts as “Falcon-like and secure”
+### ✅ Properties
 
-* The true Falcon binding is **“C comes from SHAKE256(r∥M)”**.
-* As long as the **wallet is honest**, this is *exactly Falcon*.
-* The ZKP guarantees:
+* **Still Falcon-line**: SHAKE256 is used to derive $C$ exactly as in Falcon, just not re-computed inside the circuit.
+* **Bound to the transaction**: Since reconstruction depends on $M$, the proof cannot be reused for a different message.
+* **Efficient**: Avoids huge in-circuit SHAKE256 and avoids publishing 512 coefficients on chain.
+* **Secured**: Even if the wallet lied about SHAKE256, the proof can’t be reused on another $M$ because $C$ is bound to publish $M$
+* **Security assumption**: Wallet must honestly compute $C=\text{SHAKE256}(r\|M)$. The ZK proof guarantees consistency once $C$ is fixed.
 
-  * The same $C$ that was used to produce the signature is the one checked in the algebra.
-  * That $C$ is bound to the public transaction hash $M$.
-
-So the verifier knows:
-
-* *If the wallet followed the spec*, then this proof corresponds to a real Falcon signature on $M$.
-* Even if the wallet lied about SHAKE256, the proof can’t be reused on another $M'$ because $C$ is bound to the published $M$.
-
-
-##  Bottom line
-
-* It’s still using SHAKE256,
-* It’s still bound to the transaction hash $M$,
-* And even if the SHAKE256 step isn’t enforced inside the circuit, the scheme remains **secure and Falcon-line** because the proof can’t be repurposed for a different $M$.
 
